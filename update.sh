@@ -17,12 +17,15 @@ TMPDIR=
 
 # Given a git repo's HTTPS url, how do we get a URL to view or edit specific
 # files in a web interface? We chop off the .git extension, then append one of the
-# strings below, and then append main/filename.md (TODO: don't hardcode the
-# name of the main branch).
-# The below defaults work on GitHub. For GitLab, they should be "-/blob/ and
-# "-/edit/" instead.
+# strings below, and then append main/filename.md (except for adding new files,
+# where we append just "main"). TODO: don't hardcode the name of the main
+# branch.
+# The below defaults work on GitHub. For GitLab, they should be "-/blob/", 
+# "-/edit/", and "-/new/". Other Git web interfaces may use other schemes,
+# or not support these operations.
 GIT_WEB_VIEW="blob/"
 GIT_WEB_EDIT="edit/"
+GIT_WEB_NEW="new/"
 
 # Clone or pull the repository
 if [ ! -d "$1" ]
@@ -65,11 +68,12 @@ do
   fi
 done
 
-# Generate the ToC
-printf "%% Table of contents\n\n" > "$TMPDIR/index.md"
+# Generate the index
+printf "%% Index\n\n" > "$TMPDIR/index.md"
 for page in "${!title[@]}"
 do
   echo "* [${title[$page]}](${page%.md}.html)" >> "$TMPDIR/index.md"
 done
+printf "\n----\n[View Markdown sources](${2%.git}) --- [Add new page](${2%.git}/$GIT_WEB_NEW/main)\n" >> "$TMPDIR/index.md"
 pandoc --standalone -o "$HTMLDIR/$1/index.html" "$TMPDIR/index.md"
 rm "$TMPDIR/index.md"
