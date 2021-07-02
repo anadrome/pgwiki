@@ -15,6 +15,15 @@ shopt -s nullglob
 HTMLDIR=
 TMPDIR=
 
+# Given a git repo's HTTPS url, how do we get a URL to view or edit specific
+# files in a web interface? We chop off the .git extension, then append one of the
+# strings below, and then append main/filename.md (TODO: don't hardcode the
+# name of the main branch).
+# The below defaults work on GitHub. For GitLab, they should be "-/blob/ and
+# "-/edit/" instead.
+GIT_WEB_VIEW="blob/"
+GIT_WEB_EDIT="edit/"
+
 # Clone or pull the repository
 if [ ! -d "$1" ]
 then
@@ -39,7 +48,10 @@ do
   dest="$HTMLDIR/$1/${page%.md}.html"
   if [ ! -f "$dest" ] || [ "$page" -nt "$dest" ]
   then
-    pandoc --standalone --mathjax -o "$dest" "$page"
+    echo "----" > "$TMPDIR/footer.md"
+    echo "[View Markdown Source](${2%.git}/$GIT_WEB_VIEW/main/$page) --- [Edit in Browser](${2%.git}/$GIT_WEB_EDIT/main/$page)" >> "$TMPDIR/footer.md"
+    pandoc --standalone --mathjax -o "$dest" "$page" "$TMPDIR/footer.md"
+    rm "$TMPDIR/footer.md"
   fi
 done
 
