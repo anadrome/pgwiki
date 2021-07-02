@@ -43,10 +43,11 @@ mkdir -p "$HTMLDIR/$1"
 declare -A title
 for page in *.md
 do
-  # pandoc's AST splits strings into an array of objects, so we have to join
-  # them back together to get the title. E.g. "Two words" looks like:
+  # Grab the page title out of the pandoc AST.
+  # The AST splits strings into an array of objects, so we have to join them
+  # back together. E.g. "Two words" looks like:
   #   [ { "t": "Str", "c": "Two" }, { "t": "Space" }, { "t": "Str", "c": "words" } ]
-  title[$page]=$(pandoc -t json $page | jq -r '.meta.title.c | map(if .t=="Space" then " " else .c end) | join("")')
+  title["$page"]=$(pandoc -t json "$page" | jq -r '.meta.title.c | map(if .t=="Space" then " " else .c end) | join("")')
 
   dest="$HTMLDIR/$1/${page%.md}.html"
   if [ ! -f "$dest" ] || [ "$page" -nt "$dest" ]
